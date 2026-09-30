@@ -1,0 +1,5 @@
+
+# PlantVillage source data and generated reports
+data/raw/PlantVillage-Dataset/
+notebooks/reports/
+notebooks/cleaning_outputs/
