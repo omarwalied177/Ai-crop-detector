@@ -1,0 +1,51 @@
+{
+  "milestone": "M2",
+  "dataset": "New Plant Diseases Dataset",
+  "split_source": "M1 Preprocessing.zip / splits.csv",
+  "selected_model": "MobileNetV3Large",
+  "validation_model_comparison": {
+    "Custom CNN": {
+      "accuracy": 0.7837159799300593,
+      "macro_precision": 0.8409024134938788,
+      "macro_recall": 0.7826096097553631,
+      "macro_f1": 0.7756526214218374
+    },
+    "MobileNetV3Large": {
+      "accuracy": 0.9867720845370229,
+      "macro_precision": 0.9867586794622408,
+      "macro_recall": 0.9865513924444154,
+      "macro_f1": 0.9865687505150498
+    },
+    "Custom CNN effective-weighted": {
+      "accuracy": 0.7497339212406873,
+      "macro_precision": 0.8245485329391249,
+      "macro_recall": 0.7474275431633286,
+      "macro_f1": 0.7409968433985549
+    },
+    "HOG + RGB LinearSVC": {
+      "accuracy": 0.5706666666666667,
+      "macro_f1": 0.571437525421934
+    }
+  },
+  "test_metrics": {
+    "accuracy": 0.9860309747950198,
+    "macro_precision": 0.9860494944713902,
+    "macro_recall": 0.9859683865367149,
+    "macro_f1": 0.9859272375300432,
+    "weighted_precision": 0.9861032593991791,
+    "weighted_recall": 0.9860309747950198,
+    "weighted_f1": 0.9859869430047117,
+    "macro_ovr_roc_auc": 0.9999090167974277,
+    "accuracy_95ci": [
+      0.9839811721834194,
+      0.9880048587913757
+    ],
+    "macro_f1_95ci": [
+      0.9839553625917293,
+      0.9878827206551677
+    ]
+  },
+  "test_samples": 13172,
+  "class_count": 38,
+  "notes": "Test partition used only after validation-based selection."
+}

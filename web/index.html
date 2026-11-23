@@ -1,0 +1,555 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>AI Crop Doctor</title>
+  <meta name="description" content="Upload or capture a leaf photo and get the most likely plant disease, a Grad-CAM explanation and practical guidance. Arabic and English.">
+  <meta name="theme-color" content="#15803d">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%2315803d'/%3E%3Cpath d='M9 23c0-10 6-15 16-15 0 11-6 16-16 16m0 0 9-9' fill='none' stroke='%23fff' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Readex+Pro:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="css/styles.css?v=4.1">
+  <script>
+    /* apply saved theme before first paint to avoid a flash */
+    try { var th = localStorage.getItem("cd.theme"); if (th) document.documentElement.setAttribute("data-theme", th); } catch (e) {}
+  </script>
+  <style>
+    /* Critical theme & sample chip styling to prevent unstyled flash & cache desync */
+    :root {
+      --sample-bg: #ffffff;
+      --sample-border: #a7f3d0;
+      --sample-text: #064e3b;
+      --sample-hover-bg: #ecfdf5;
+    }
+    :root[data-theme="dark"] {
+      --sample-bg: #132a1e;
+      --sample-border: #22c55e;
+      --sample-text: #ffffff;
+      --sample-hover-bg: #1c3e2d;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) {
+        --sample-bg: #132a1e;
+        --sample-border: #22c55e;
+        --sample-text: #ffffff;
+        --sample-hover-bg: #1c3e2d;
+      }
+    }
+    .samples-section {
+      margin-top: 24px;
+      padding: 20px 22px;
+      background: var(--surface-card, #132a1e);
+      border: 1.5px solid var(--line, #22523b);
+      border-radius: 18px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+      text-align: start;
+    }
+    .samples-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+    .samples-badge {
+      font-size: 1.25rem;
+      line-height: 1;
+    }
+    .samples-title {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--ink-muted, #86efac);
+      margin: 0;
+    }
+    :root:not([data-theme="dark"]) .samples-title {
+      color: #065f46;
+    }
+    .samples-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 12px;
+    }
+    .sample-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      padding: 13px 18px;
+      background-color: var(--sample-bg, #132a1e) !important;
+      border: 1.5px solid var(--sample-border, #22c55e) !important;
+      border-radius: 12px;
+      cursor: pointer;
+      text-align: start;
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--sample-text, #ffffff) !important;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+      width: 100%;
+      text-decoration: none;
+    }
+    .sample-chip:hover {
+      background-color: var(--sample-hover-bg, #1c3e2d) !important;
+      border-color: #4ade80 !important;
+      color: #ffffff !important;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(34, 197, 94, 0.3);
+    }
+    .sample-chip:active {
+      transform: translateY(0);
+    }
+    .sample-chip .sample-icon {
+      font-size: 1.35rem;
+      line-height: 1;
+      flex-shrink: 0;
+    }
+    .sample-chip .sample-label {
+      flex: 1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      color: inherit !important;
+    }
+    .btn-new-leaf {
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+      color: #ffffff !important;
+      font-weight: 700 !important;
+      border: none !important;
+      box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);
+    }
+    .btn-new-leaf:hover {
+      background: linear-gradient(135deg, #059669 0%, #047857 100%) !important;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(16, 185, 129, 0.45);
+    }
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#main" data-i18n="skip">Skip to main content</a>
+
+  <header class="site-header">
+    <div class="wrap header-row">
+      <a class="brand" href="#" aria-label="AI Crop Doctor">
+        <span class="brand-logo" aria-hidden="true">
+          <svg width="32" height="32" viewBox="0 0 32 32">
+            <rect width="32" height="32" rx="8" fill="currentColor"/>
+            <path d="M9 23c0-10 6-15 16-15 0 11-6 16-16 16m0 0 9-9" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </span>
+        <span class="brand-name" data-i18n="app_name">AI Crop Doctor</span>
+        <span class="brand-badge" data-i18n="hero_badge">AI Plant Health Assistant</span>
+      </a>
+
+      <div class="header-tools">
+        <button type="button" class="tool-btn header-new-btn" id="btnNewHeader" data-i18n-aria="btn_new" title="Test another leaf" hidden>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8z"/>
+            <path d="M12 8v8m-4-4h8"/>
+          </svg>
+          <span class="header-btn-label" data-i18n="btn_new_short">New leaf</span>
+        </button>
+
+        <button type="button" class="tool-btn lang-btn" id="btnLang" data-i18n-aria="lang_aria">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="2" y1="12" x2="22" y2="12"/>
+            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+          </svg>
+          <span id="btnLangText">العربية</span>
+        </button>
+
+        <button type="button" class="tool-btn icon-only theme-btn" id="btnTheme" data-i18n-aria="theme_aria" aria-pressed="false" title="Toggle dark mode">
+          <svg class="icon-moon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/>
+          </svg>
+          <svg class="icon-sun" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="5"/>
+            <line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+            <line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div id="demoBanner" class="demo-banner" role="status" hidden></div>
+
+  <main id="main">
+    <section class="wrap intro">
+      <div class="intro-content">
+        <h1 data-i18n="hero_title">Photograph one leaf. Get an instant diagnosis.</h1>
+        <p class="lede" data-i18n="hero_sub">Upload or capture a clear photo of a plant leaf. The model suggests the three most likely conditions, shows which part of the leaf it looked at, and explains practical treatment steps.</p>
+        <div class="feature-pills" aria-label="Key features">
+          <span class="pill-chip"><span aria-hidden="true">🌿</span> 38 Plant Conditions</span>
+          <span class="pill-chip"><span aria-hidden="true">⚡</span> Instant AI Analysis</span>
+          <span class="pill-chip"><span aria-hidden="true">🔬</span> Explainable Grad-CAM</span>
+          <span class="pill-chip"><span aria-hidden="true">🌍</span> English &amp; العربية</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="wrap workspace" id="diagnose" aria-labelledby="stepsLabel">
+      <ol class="steps" id="steps" aria-label="Progress">
+        <li data-step="1" class="is-current" role="button" tabindex="0" title="Upload leaf photo">
+          <span class="dot" aria-hidden="true">1</span>
+          <span data-i18n="step_photo">Photo</span>
+        </li>
+        <li data-step="2">
+          <span class="dot" aria-hidden="true">2</span>
+          <span data-i18n="step_analyse">Analysis</span>
+        </li>
+        <li data-step="3">
+          <span class="dot" aria-hidden="true">3</span>
+          <span data-i18n="step_result">Result</span>
+        </li>
+      </ol>
+      <h2 id="stepsLabel" class="sr-only" data-i18n="diagnose_heading">Diagnose a leaf</h2>
+
+      <!-- 1. choose a photo -->
+      <div id="inputView" class="view">
+        <div class="specimen dropzone" id="dropzone" tabindex="0" role="button" aria-describedby="dzHint" data-i18n-aria="dz_aria">
+          <span class="crop-mark tl" aria-hidden="true"></span><span class="crop-mark tr" aria-hidden="true"></span>
+          <span class="crop-mark bl" aria-hidden="true"></span><span class="crop-mark br" aria-hidden="true"></span>
+          
+          <div class="dz-icon-wrap" aria-hidden="true">
+            <svg class="dz-icon" width="52" height="52" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M7 25c0-10 5-16 18-16 0 11-6 17-16 17m0 0 9-9"/>
+              <path d="M16 16c2-4 6-6 10-7"/>
+              <path d="M12 20c-1-3 0-7 3-9"/>
+            </svg>
+          </div>
+          <p class="dz-title" data-i18n="dz_title">Drop a leaf photo here</p>
+          <p class="dz-or" data-i18n="dz_or">or</p>
+          <div class="dz-actions">
+            <button type="button" class="btn btn-primary btn-lg" id="btnChoose">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M12 16V4m0 0-4 4m4-4 4 4M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/>
+              </svg>
+              <span data-i18n="btn_choose">Upload a photo</span>
+            </button>
+            <button type="button" class="btn btn-secondary btn-lg" id="btnCapture">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M4 8h3l1.5-2h7L17 8h3a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/>
+                <circle cx="12" cy="13" r="3.5"/>
+              </svg>
+              <span data-i18n="btn_capture">Take a photo</span>
+            </button>
+          </div>
+          <p class="dz-hint" id="dzHint"></p>
+        </div>
+        <input type="file" id="fileInput" accept="image/jpeg,image/png,image/webp" hidden>
+        <input type="file" id="captureInput" accept="image/*" capture="environment" hidden>
+
+        <!-- Quick try sample leaves -->
+        <div class="samples-section" id="sampleSection">
+          <div class="samples-header">
+            <span class="samples-badge" aria-hidden="true">🌱</span>
+            <p class="samples-title" data-i18n="try_samples_title">Don't have a leaf photo? Click a sample to test:</p>
+          </div>
+          <div class="samples-grid">
+            <button type="button" class="sample-chip sample-chip-tomato" data-sample="tomato_early_blight" title="Test with Tomato Early Blight sample">
+              <span class="sample-icon" aria-hidden="true">🍅</span>
+              <span class="sample-label" data-i18n="sample_tomato_early_blight">Tomato - Early blight</span>
+            </button>
+            <button type="button" class="sample-chip sample-chip-corn" data-sample="corn_rust" title="Test with Corn Common Rust sample">
+              <span class="sample-icon" aria-hidden="true">🌽</span>
+              <span class="sample-label" data-i18n="sample_corn_rust">Corn - Common rust</span>
+            </button>
+            <button type="button" class="sample-chip sample-chip-potato" data-sample="potato_late_blight" title="Test with Potato Late Blight sample">
+              <span class="sample-icon" aria-hidden="true">🥔</span>
+              <span class="sample-label" data-i18n="sample_potato_late_blight">Potato - Late blight</span>
+            </button>
+            <button type="button" class="sample-chip sample-chip-apple" data-sample="apple_healthy" title="Test with Healthy Apple Leaf sample">
+              <span class="sample-icon" aria-hidden="true">🍏</span>
+              <span class="sample-label" data-i18n="sample_apple_healthy">Apple - Healthy leaf</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="tips">
+          <h3 data-i18n="tips_title">For the most reliable result</h3>
+          <div class="tips-grid">
+            <div class="tip-card">
+              <span class="tip-badge" aria-hidden="true">🍃</span>
+              <div class="tip-body">
+                <strong data-i18n="tip_single_title">Single Leaf</strong>
+                <p data-i18n="tip_1">Show one leaf and fill most of the frame with it.</p>
+              </div>
+            </div>
+            <div class="tip-card">
+              <span class="tip-badge" aria-hidden="true">☀️</span>
+              <div class="tip-body">
+                <strong data-i18n="tip_light_title">Natural Light</strong>
+                <p data-i18n="tip_2">Use daylight and avoid strong shadows or glare.</p>
+              </div>
+            </div>
+            <div class="tip-card">
+              <span class="tip-badge" aria-hidden="true">🎯</span>
+              <div class="tip-body">
+                <strong data-i18n="tip_focus_title">Sharp Focus</strong>
+                <p data-i18n="tip_3">Hold the camera steady and keep the leaf in focus.</p>
+              </div>
+            </div>
+            <div class="tip-card">
+              <span class="tip-badge" aria-hidden="true">⚪</span>
+              <div class="tip-body">
+                <strong data-i18n="tip_bg_title">Plain Background</strong>
+                <p data-i18n="tip_4">A plain background works best.</p>
+              </div>
+            </div>
+          </div>
+          <p class="fine privacy-note" data-i18n="privacy_note">Upload leaf photos only. Avoid people or personal information in the picture.</p>
+        </div>
+      </div>
+
+      <!-- 1b. check the photo -->
+      <div id="previewView" class="view" hidden>
+        <div class="view-header">
+          <h3 class="view-title" data-i18n="preview_title">Check your photo</h3>
+        </div>
+        <div class="preview-layout">
+          <figure class="specimen frame">
+            <span class="crop-mark tl" aria-hidden="true"></span><span class="crop-mark tr" aria-hidden="true"></span>
+            <span class="crop-mark bl" aria-hidden="true"></span><span class="crop-mark br" aria-hidden="true"></span>
+            <img id="previewImg" alt="" class="frame-img">
+          </figure>
+          <div class="preview-side">
+            <div class="preview-meta-card">
+              <p class="file-line" id="fileInfo"></p>
+            </div>
+            <ul class="hints" id="qualityHints" aria-live="polite"></ul>
+            <div class="actions preview-actions">
+              <button type="button" class="btn btn-primary btn-lg" id="btnAnalyse">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+                </svg>
+                <span data-i18n="btn_analyse">Analyse leaf</span>
+              </button>
+              <button type="button" class="btn btn-ghost" id="btnChange">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+                  <path d="M3 3v5h5"/>
+                  <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/>
+                  <path d="M16 21h5v-5"/>
+                </svg>
+                <span data-i18n="btn_change">Choose another photo</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. loading -->
+      <div id="loadingView" class="view loading" hidden>
+        <div class="scanner-card">
+          <div class="scanner-animation" aria-hidden="true">
+            <div class="scanner-leaf-icon">
+              <svg width="60" height="60" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M7 25c0-10 5-16 18-16 0 11-6 17-16 17m0 0 9-9"/>
+                <path d="M16 16c2-4 6-6 10-7"/>
+                <path d="M12 20c-1-3 0-7 3-9"/>
+              </svg>
+            </div>
+            <div class="scanner-beam"></div>
+          </div>
+          <div class="spinner" aria-hidden="true"></div>
+          <p class="loading-title" data-i18n="loading_title">Analysing your leaf</p>
+          <p class="loading-step" id="loadingStep" role="status" aria-live="polite"></p>
+          <button type="button" class="btn btn-ghost" id="btnCancel" data-i18n="btn_cancel">Cancel</button>
+        </div>
+      </div>
+
+      <!-- error -->
+      <div id="errorView" class="view error-view" hidden>
+        <div class="callout callout-bad" role="alert">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v6m0 3.5v.01"/></svg>
+          <div>
+            <h3 id="errorTitle" tabindex="-1"></h3>
+            <p id="errorMsg"></p>
+          </div>
+        </div>
+        <div class="actions">
+          <button type="button" class="btn btn-primary" id="btnRetry" data-i18n="btn_retry">Try again</button>
+          <button type="button" class="btn btn-ghost" id="btnErrBack" data-i18n="btn_other_photo">Choose another photo</button>
+        </div>
+      </div>
+
+      <!-- 3. result -->
+      <div id="resultView" class="view" hidden>
+        <!-- Prominent Result Action Header (Right in eye-sight!) -->
+        <div class="result-action-header">
+          <div class="result-title-group">
+            <span class="result-ready-badge" data-i18n="result_ready_badge">Analysis complete</span>
+            <h2 class="result-main-title" data-i18n="result_overview_title">Diagnosis Results</h2>
+          </div>
+          <div class="result-header-actions">
+            <button type="button" class="btn btn-primary btn-new-leaf" id="btnNewTop">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8z"/>
+                <path d="M12 8v8m-4-4h8"/>
+              </svg>
+              <span data-i18n="btn_new">Test another leaf</span>
+            </button>
+            <button type="button" class="btn btn-ghost btn-print" id="btnPrintReport">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <polyline points="6 9 6 2 18 2 18 9"></polyline>
+                <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
+                <rect x="6" y="14" width="12" height="8"></rect>
+              </svg>
+              <span data-i18n="btn_print">Print report</span>
+            </button>
+          </div>
+        </div>
+
+        <div id="statusCard" class="callout"></div>
+
+        <div class="result-grid">
+          <figure class="viz">
+            <div class="viz-tools" id="vizTools">
+              <div class="segmented" role="group" data-i18n-aria="gc_view_aria">
+                <button type="button" id="vizOriginal" aria-pressed="false" data-i18n="gc_original">Photo</button>
+                <button type="button" id="vizGradcam" aria-pressed="true" data-i18n="gc_overlay">Grad-CAM</button>
+              </div>
+              <label class="opacity" id="opacityWrap"><span data-i18n="gc_strength">Overlay</span>
+                <input type="range" id="opacity" min="0" max="100" value="60"></label>
+            </div>
+            <div class="specimen frame stage">
+              <span class="crop-mark tl" aria-hidden="true"></span><span class="crop-mark tr" aria-hidden="true"></span>
+              <span class="crop-mark bl" aria-hidden="true"></span><span class="crop-mark br" aria-hidden="true"></span>
+              <img id="vizBase" class="layer" alt="">
+              <img id="vizHeat" class="layer" alt="" hidden>
+            </div>
+            <figcaption id="gcCaption" class="fine"></figcaption>
+          </figure>
+
+          <div class="ranking">
+            <h3 id="rankHeading" data-i18n="rank_heading">Most likely conditions</h3>
+            <ol class="pred-list" id="predList"></ol>
+            <p class="rank-hint-line fine" data-i18n="rank_hint">💡 Click any condition to view symptoms and treatment guide below</p>
+            <p class="fine" id="metaLine"></p>
+          </div>
+        </div>
+
+        <section class="prep" id="prepPanel" hidden aria-labelledby="prepHeading">
+          <div class="prep-head">
+            <h3 id="prepHeading" data-i18n="prep_title">Preprocessing</h3>
+            <p class="fine" data-i18n="prep_sub">Exactly what happens between your upload and the model, the same steps used in training.</p>
+          </div>
+          <ol class="prep-strip" id="prepStrip"></ol>
+        </section>
+
+        <section id="kbPanel" class="kb" aria-live="polite"></section>
+
+        <section id="feedbackPanel" class="feedback" hidden>
+          <h3 data-i18n="fb_title">Was this correct?</h3>
+          <div class="fb-actions" id="fbChoice">
+            <button type="button" class="btn btn-secondary" id="fbYes" data-i18n="fb_yes">Yes</button>
+            <button type="button" class="btn btn-secondary" id="fbNo" data-i18n="fb_no">No</button>
+          </div>
+          <div id="fbWrong" class="fb-wrong" hidden>
+            <label for="fbSelect" data-i18n="fb_select_label">What is the correct condition?</label>
+            <select id="fbSelect"></select>
+            <button type="button" class="btn btn-primary" id="fbSend" data-i18n="fb_send">Send feedback</button>
+          </div>
+          <p id="fbStatus" class="fb-status" role="status" aria-live="polite"></p>
+        </section>
+
+        <div class="actions end">
+          <button type="button" class="btn btn-primary btn-lg btn-new-leaf" id="btnNew">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8z"/>
+              <path d="M12 8v8m-4-4h8"/>
+            </svg>
+            <span data-i18n="btn_new">Test another leaf</span>
+          </button>
+        </div>
+
+        <!-- Floating Sticky Action Bar (Guarantees Test Another Leaf is ALWAYS visible) -->
+        <aside id="resultStickyBar" class="sticky-bar" hidden aria-label="Quick diagnosis actions">
+          <div class="wrap sticky-bar-inner">
+            <div class="sticky-summary">
+              <span class="sticky-icon" aria-hidden="true">🌿</span>
+              <div class="sticky-text">
+                <strong id="stickyDiagnosisName">Diagnosis</strong>
+                <span id="stickyDiagnosisConf" class="fine"></span>
+              </div>
+            </div>
+            <div class="sticky-actions">
+              <button type="button" class="btn btn-primary btn-new-leaf btn-sm" id="btnNewSticky">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8z"/>
+                  <path d="M12 8v8m-4-4h8"/>
+                </svg>
+                <span data-i18n="btn_new">Test another leaf</span>
+              </button>
+              <button type="button" class="btn btn-ghost btn-sm" id="btnBackToTop" title="Back to top" data-i18n-aria="btn_back_to_top">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <polyline points="18 15 12 9 6 15"></polyline>
+                </svg>
+                <span class="sr-only" data-i18n="btn_back_to_top">Top</span>
+              </button>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <section class="wrap how" aria-labelledby="howTitle">
+      <h2 id="howTitle" data-i18n="how_title">How it works</h2>
+      <ol class="how-list">
+        <li>
+          <div class="how-step-num" aria-hidden="true">1</div>
+          <div class="how-step-content">
+            <strong data-i18n="how_1_t">Add a photo</strong>
+            <span data-i18n="how_1_d">Upload an image or take one with your camera.</span>
+          </div>
+        </li>
+        <li>
+          <div class="how-step-num" aria-hidden="true">2</div>
+          <div class="how-step-content">
+            <strong data-i18n="how_2_t">The model compares it</strong>
+            <span data-i18n="how_2_d">The photo is compared with 38 crop conditions, including healthy leaves.</span>
+          </div>
+        </li>
+        <li>
+          <div class="how-step-num" aria-hidden="true">3</div>
+          <div class="how-step-content">
+            <strong data-i18n="how_3_t">Read, then verify</strong>
+            <span data-i18n="how_3_d">See the top three possibilities, what the model focused on, and practical guidance to discuss with an expert.</span>
+          </div>
+        </li>
+      </ol>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap">
+      <p class="disclaimer-line" data-i18n="disclaimer">This tool supports decisions and does not replace an agricultural expert. Confirm the diagnosis with a qualified agronomist or your local agricultural extension service before applying any treatment.</p>
+      <p class="fine" id="footerNote"></p>
+    </div>
+  </footer>
+
+  <dialog id="cameraDialog" class="camera" aria-labelledby="camTitle">
+    <div class="cam-head">
+      <h3 id="camTitle" data-i18n="cam_title">Take a photo</h3>
+      <button type="button" class="tool-btn" id="camClose" data-i18n="cam_close">Close</button>
+    </div>
+    <div class="cam-stage"><video id="camVideo" playsinline muted autoplay></video></div>
+    <p class="fine" id="camMsg" role="status"></p>
+    <div class="actions">
+      <button type="button" class="btn btn-primary btn-lg" id="camShot" data-i18n="cam_capture">Capture</button>
+      <button type="button" class="btn btn-ghost" id="camSwitch" data-i18n="cam_switch">Switch camera</button>
+    </div>
+  </dialog>
+
+  <noscript><p class="noscript">AI Crop Doctor needs JavaScript. | يحتاج التطبيق إلى تفعيل جافاسكريبت.</p></noscript>
+
+  <script src="config.js?v=4.0"></script>
+  <script src="js/kb-data.js?v=4.0"></script>
+  <script src="js/i18n.js?v=4.1"></script>
+  <script src="js/api.js?v=4.1"></script>
+  <script src="js/app.js?v=4.1"></script>
+</body>
+</html>

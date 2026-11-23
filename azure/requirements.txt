@@ -1,0 +1,8 @@
+# torch is installed separately in Dockerfile via CPU wheel index
+fastapi>=0.110,<1
+uvicorn[standard]>=0.29
+python-multipart>=0.0.9
+pillow>=10.0
+numpy>=1.26,<3
+transformers>=4.40,<6
+safetensors>=0.4

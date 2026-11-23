@@ -1,0 +1,7 @@
+bundle/
+logs/
+*.zip
+.env
+__pycache__/
+*.pyc
+.venv/
