@@ -31,9 +31,22 @@ DIAGNOSED = {
 RECOGNIZED = ["Blueberry", "Cherry", "Peach", "Raspberry", "Soybean", "Squash", "Strawberry"]
 LABELS = ["Tomato - Early blight", "Corn - Common rust", "Potato - Late blight", "Apple - Healthy"]
 
+
+def icon(name, size=18):
+    P = {
+     "leaf": '<path d="M9 23c0-10 6-15 16-15 0 11-6 16-16 16m0 0 9-9"/>',
+     "bolt": '<path d="M13 2 4 14h7l-1 8 9-12h-7z"/>',
+     "flask": '<path d="M9 3h6M10 3v6L4.5 19a2 2 0 0 0 1.8 3h11.4a2 2 0 0 0 1.8-3L14 9V3"/><path d="M7.5 15h9"/>',
+     "globe": '<circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>',
+     "image": '<rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/>',
+    }
+    vb = "0 0 32 32" if name == "leaf" else "0 0 24 24"
+    return (f'<svg width="{size}" height="{size}" viewBox="{vb}" fill="none" stroke="currentColor" stroke-width="2" '
+            f'stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;flex-shrink:0">{P[name]}</svg>')
+
 top = st.columns([6, 2, 2])
 ar = top[1].toggle("العربية", value=False)
-dark = top[2].toggle("🌙", value=False)
+dark = top[2].toggle("داكن" if ar else "Dark", value=False)
 L = T["ar" if ar else "en"]
 def t(k, **kw):
     v = L.get(k) or T["en"].get(k, k)
@@ -65,7 +78,7 @@ p.lede{{font-size:1.05rem;line-height:1.7;color:var(--muted);max-width:640px}}
 .dot{{width:28px;height:28px;border-radius:50%;border:1.5px solid var(--line);display:grid;place-items:center;font-size:.8rem}}
 .step.cur{{color:var(--ink)}} .step.cur .dot{{background:var(--leaf);border-color:var(--leaf);color:#fff}}
 .dz-top{{text-align:center;margin-top:6px}}
-.dz-icon{{width:68px;height:68px;border-radius:50%;background:var(--tint);display:grid;place-items:center;margin:0 auto 6px;font-size:1.9rem}}
+.dz-icon{{color:var(--leaf-deep);width:68px;height:68px;border-radius:50%;background:var(--tint);display:grid;place-items:center;margin:0 auto 6px;font-size:1.9rem}}
 .dz-title{{font-family:"Readex Pro","IBM Plex Sans Arabic",sans-serif;font-weight:700;font-size:1.35rem;color:var(--ink);margin:0}}
 .dz-hint{{text-align:center;color:var(--muted);font-size:.85rem;margin:6px 0 10px}}
 [data-testid="stFileUploaderDropzone"]{{align-items:center !important;justify-content:center !important;background:var(--surface);border:2px dashed var(--line);border-radius:18px;padding:22px;flex-direction:column;justify-content:center;gap:6px}}
@@ -91,11 +104,11 @@ h3.sec{{font-family:"Readex Pro","IBM Plex Sans Arabic",sans-serif;font-weight:7
 </style>
 """, unsafe_allow_html=True)
 
-st.markdown(f'<div class="brandrow"><span class="logo">🌿</span><span class="brand-name">{t("app_name")}</span>'
+st.markdown(f'<div class="brandrow"><span class="logo">{icon("leaf",20)}</span><span class="brand-name">{t("app_name")}</span>'
             f'<span class="brand-badge">{t("hero_badge")}</span></div>'
             f'<h1 class="hero">{t("hero_title")}</h1><p class="lede">{t("hero_sub")}</p>'
-            f'<div class="pills"><span class="pill">🌿 {"١٢ محصولًا" if ar else "12 crops"}</span><span class="pill">⚡ Instant AI Analysis</span>'
-            '<span class="pill">🔬 Explainable (Grad-CAM planned)</span><span class="pill">🌍 English &amp; العربية</span></div>',
+            f'<div class="pills"><span class="pill">{icon("leaf")} {"١٢ محصولًا" if ar else "12 crops"}</span><span class="pill">{icon("bolt")} Instant AI Analysis</span>'
+            f'<span class="pill">{icon("flask")} Explainable (Grad-CAM planned)</span><span class="pill">{icon("globe")} English &amp; العربية</span></div>',
             unsafe_allow_html=True)
 
 def predict(data: bytes, name: str):
@@ -110,7 +123,7 @@ def predict(data: bytes, name: str):
     return [], True
 
 steps_ph = st.empty()
-st.markdown(f'<div class="dz-top"><div class="dz-icon">🍃</div><p class="dz-title">{t("dz_title")}</p></div>'
+st.markdown(f'<div class="dz-top"><div class="dz-icon">{icon("leaf",34)}</div><p class="dz-title">{t("dz_title")}</p></div>'
             f'<p class="dz-hint">{t("dz_hint", mb=10)}</p>', unsafe_allow_html=True)
 photo = st.file_uploader("photo", type=["jpg", "jpeg", "png", "webp"], label_visibility="collapsed")
 cur = 3 if (photo or st.session_state.get("sample")) else 1
@@ -118,8 +131,14 @@ steps = "".join(f'<span class="step {"cur" if i == cur else ""}"><span class="do
                 for i, k in [(1, "step_photo"), (2, "step_analyse"), (3, "step_result")])
 steps_ph.markdown(f'<div class="steps">{steps}</div>', unsafe_allow_html=True)
 
+import base64
+def load_sample(key):
+    jpg = HERE / "samples" / f"{key}.jpg"
+    if jpg.exists():
+        return jpg.read_bytes()
+    return base64.b64decode((HERE / "samples" / f"{key}.b64").read_text())
 SAMPLES = json.loads((HERE / "samples" / "samples.json").read_text()) if (HERE / "samples" / "samples.json").exists() else {}
-st.markdown('<div class="card"><b>🍃 Sample photos (real PlantVillage lab photos, true label shown). Click one to test:</b></div>', unsafe_allow_html=True)
+st.markdown(f'<div class="card"><b>{icon("image")} Sample photos (real PlantVillage lab photos, true label shown). Click one to test:</b></div>', unsafe_allow_html=True)
 chosen = None
 cols = st.columns(4)
 for i, (k, m) in enumerate(SAMPLES.items()):
@@ -132,7 +151,7 @@ elif st.session_state.get("sample") in SAMPLES:
     chosen = st.session_state["sample"]
 
 if photo or chosen:
-    data = photo.getvalue() if photo else (HERE / "samples" / f"{chosen}.jpg").read_bytes()
+    data = photo.getvalue() if photo else load_sample(chosen)
     if chosen:
         st.caption("Sample: true label = " + SAMPLES[chosen]["label"] + ". Source: " + SAMPLES[chosen]["source"])
     c1, c2 = st.columns(2)
