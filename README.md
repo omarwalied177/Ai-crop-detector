@@ -1,6 +1,6 @@
 # AI Crop Doctor — Multi-Crop Plant Disease Diagnosis System
 
-[![CI](https://github.com/omarwalied/AI_Crop_Doctor/actions/workflows/ci.yml/badge.svg)](https://github.com/omarwalied/AI_Crop_Doctor/actions/workflows/ci.yml)
+[![CI](https://github.com/omarwalied177/Ai-crop-detector/actions/workflows/ci.yml/badge.svg)](https://github.com/omarwalied177/Ai-crop-detector/actions/workflows/ci.yml)
 [![Python 3.11](https://img.shields.io/badge/python-3.11-blue.svg)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.110+-009688.svg)](https://fastapi.tiangolo.com)
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.2+-ee4c2c.svg)](https://pytorch.org/)
@@ -106,7 +106,7 @@ AI Crop Doctor is an intelligent plant disease diagnosis system that accurately 
 Clone the repository and install requirements:
 
 ```bash
-git clone https://github.com/omarwalied/AI_Crop_Doctor.git
+git clone https://github.com/omarwalied177/Ai-crop-detector.git
 cd AI_Crop_Doctor
 
 # Create virtual environment
