@@ -1,0 +1,57 @@
+{
+ "grape_black_rot": {
+  "label": "Grape___Black_rot",
+  "source": "PlantVillage (spMohanty/PlantVillage-Dataset)",
+  "file": "raw/color/Grape___Black_rot/83583a39-fa21-4c4c-af8e-df675210eb91___FAM_B.Rot 3560.JPG"
+ },
+ "grape_healthy": {
+  "label": "Grape___healthy",
+  "source": "PlantVillage (spMohanty/PlantVillage-Dataset)",
+  "file": "raw/color/Grape___healthy/7dcbe0fa-4dc1-4234-97d4-9c19391fbe21___Mt.N.V_HL 9114.JPG"
+ },
+ "corn_gray_leaf_spot": {
+  "label": "Corn_(maize)___Cercospora_leaf_spot Gray_leaf_spot",
+  "source": "PlantVillage (spMohanty/PlantVillage-Dataset)",
+  "file": "raw/color/Corn_(maize)___Cercospora_leaf_spot Gray_leaf_spot/8a3603cd-1ffa-42b5-a6d8-f9c957639a45___RS_GLSp 4677.JPG"
+ },
+ "corn_common_rust": {
+  "label": "Corn_(maize)___Common_rust_",
+  "source": "PlantVillage (spMohanty/PlantVillage-Dataset)",
+  "file": "raw/color/Corn_(maize)___Common_rust_/RS_Rust 2167.JPG"
+ },
+ "apple_scab": {
+  "label": "Apple___Apple_scab",
+  "source": "PlantVillage (spMohanty/PlantVillage-Dataset)",
+  "file": "raw/color/Apple___Apple_scab/80ddd81b-9c75-4711-8012-7ee68af378db___FREC_Scab 3458.JPG"
+ },
+ "apple_healthy": {
+  "label": "Apple___healthy",
+  "source": "PlantVillage (spMohanty/PlantVillage-Dataset)",
+  "file": "raw/color/Apple___healthy/7bf0ddc7-fa85-442b-859b-486b087a4641___RS_HL 5837.JPG"
+ },
+ "potato_early_blight": {
+  "label": "Potato___Early_blight",
+  "source": "PlantVillage (spMohanty/PlantVillage-Dataset)",
+  "file": "raw/color/Potato___Early_blight/8493b49f-1b73-4d5c-b6f9-ae9a41091643___RS_Early.B 6720.JPG"
+ },
+ "potato_late_blight": {
+  "label": "Potato___Late_blight",
+  "source": "PlantVillage (spMohanty/PlantVillage-Dataset)",
+  "file": "raw/color/Potato___Late_blight/83f821e6-0924-4bbe-8977-0e11c220aed0___RS_LB 5011.JPG"
+ },
+ "tomato_early_blight": {
+  "label": "Tomato___Early_blight",
+  "source": "PlantVillage (spMohanty/PlantVillage-Dataset)",
+  "file": "raw/color/Tomato___Early_blight/7b377a4c-886c-46c5-8a57-a636cc47c9a8___RS_Erly.B 6475.JPG"
+ },
+ "tomato_late_blight": {
+  "label": "Tomato___Late_blight",
+  "source": "PlantVillage (spMohanty/PlantVillage-Dataset)",
+  "file": "raw/color/Tomato___Late_blight/42925d12-5478-4773-acdd-88b8361f8bb9___RS_Late.B 5458.JPG"
+ },
+ "tomato_healthy": {
+  "label": "Tomato___healthy",
+  "source": "PlantVillage (spMohanty/PlantVillage-Dataset)",
+  "file": "raw/color/Tomato___healthy/4e67dd9d-8a92-4b30-bb08-2e30d34acde7___RS_HL 0245.JPG"
+ }
+}
