@@ -62,8 +62,8 @@ class Bundle:
         self.class_lists = json.loads((wdir / "class_lists.json").read_text())
         dt = torch.float32
         log.info("loading CLIP"); self.clip = CLIPVisionModel.from_pretrained(CLIP_NAME, torch_dtype=dt).eval()
-        with safe_open(hf_hub_download(CLIP_NAME, "model.safetensors"), framework="pt") as f:
-            self.proj = f.get_tensor("visual_projection.weight").float()
+        _csd = torch.load(hf_hub_download(CLIP_NAME, "pytorch_model.bin"), map_location="cpu")
+        self.proj = _csd["visual_projection.weight"].float(); del _csd
         log.info("loading DINOv2"); self.dino = inject_lora(AutoModel.from_pretrained(DINO_NAME, torch_dtype=dt).eval())
         sd = torch.load(wdir / "dinov2_lora_state.pt", map_location="cpu")
         if isinstance(sd, dict) and "state" in sd: sd = sd["state"]
