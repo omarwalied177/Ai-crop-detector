@@ -38,7 +38,7 @@ def inject_lora(m, r=8, alpha=16):
     for layer in m.encoder.layer:
         for nm, mod in list(layer.named_modules()):
             last = nm.split(".")[-1]
-            if isinstance(mod, nn.Linear) and last in ("query", "value") and "attention" in nm:
+            if isinstance(mod, nn.Linear) and last in ("query", "value", "q_proj", "v_proj") and "attention" in nm:
                 parent = layer; parts = nm.split(".")
                 for p in parts[:-1]: parent = getattr(parent, p)
                 setattr(parent, parts[-1], LoRALinear(mod, r, alpha)); n += 1
@@ -71,7 +71,7 @@ class Bundle:
         lora_loaded = [k for k in sd if k.endswith(".A") or k.endswith(".B")]
         missing_lora = [k for k in res.missing_keys if k.endswith(".A") or k.endswith(".B")]
         log.info("LoRA keys in file %d, missing LoRA keys %d, unexpected %d", len(lora_loaded), len(missing_lora), len(res.unexpected_keys))
-        assert len(lora_loaded) == 48 and not missing_lora, (len(lora_loaded), missing_lora[:3], res.unexpected_keys[:3])
+        assert len(lora_loaded) == 96 and not missing_lora, (len(lora_loaded), missing_lora[:3], res.unexpected_keys[:3])
         for p in self.dino.parameters(): p.requires_grad_(False)
         log.info("loading SigLIP"); self.sig = SiglipVisionModel.from_pretrained(SIG_NAME, torch_dtype=dt).eval()
         self.router = load_ck(wdir / "router.pt", self.class_lists["router"])
