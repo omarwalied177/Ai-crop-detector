@@ -6,7 +6,7 @@ import os, re, json, hashlib, pathlib
 import streamlit as st
 
 HERE = pathlib.Path(__file__).parent
-API_URL = os.environ.get("API_URL", "").rstrip("/")
+API_URL = os.environ.get("API_URL", "https://cropdoctor-api.happyflower-321b24d3.francecentral.azurecontainerapps.io").rstrip("/")
 THRESHOLD = 0.60
 st.set_page_config(page_title="AI Crop Doctor", page_icon="🌿", layout="centered")
 
@@ -111,11 +111,23 @@ st.markdown(f'<div class="brandrow"><span class="logo">{icon("leaf",20)}</span><
             f'<span class="pill">{icon("flask")} Explainable (Grad-CAM planned)</span><span class="pill">{icon("globe")} English &amp; العربية</span></div>',
             unsafe_allow_html=True)
 
+@st.cache_data(show_spinner=False, ttl=3600)
+def _call_api(data: bytes, name: str):
+    import requests, time
+    last = None
+    for _ in range(8):
+        try:
+            r = requests.post(f"{API_URL}/api/predict", files={"file": (name, data)}, timeout=180)
+            r.raise_for_status()
+            return r.json()
+        except Exception as e:
+            last = e; time.sleep(15)
+    raise last
+
 def predict(data: bytes, name: str):
     if API_URL:
-        import requests
-        r = requests.post(f"{API_URL}/api/predict", files={"file": (name, data)}, timeout=30)
-        r.raise_for_status(); raw = r.json()
+        with st.spinner("Analysing your photo. If the model server was asleep it is waking up now, which can take a few minutes on the first request. Please keep this page open."):
+            raw = _call_api(data, name)
         preds = raw.get("predictions") or raw.get("top3") or raw.get("results")
         return [(p.get("label"), float(p.get("confidence", 0))) for p in preds[:3]], False
     h = int(hashlib.sha256(data).hexdigest(), 16)
