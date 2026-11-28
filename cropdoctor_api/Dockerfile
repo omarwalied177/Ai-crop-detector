@@ -3,7 +3,7 @@ ENV PYTHONUNBUFFERED=1 HF_HOME=/opt/hf PIP_NO_CACHE_DIR=1
 RUN pip install torch --index-url https://download.pytorch.org/whl/cpu
 COPY requirements.txt /tmp/requirements.txt
 RUN pip install -r /tmp/requirements.txt
-RUN python -c "from huggingface_hub import snapshot_download as d; [d(r, allow_patterns=['*.json','*.safetensors','*.txt','*.model']) for r in ['openai/clip-vit-large-patch14-336','facebook/dinov2-large','google/siglip-so400m-patch14-384']]" && chmod -R a+rwX /opt/hf
+RUN python -c "from huggingface_hub import snapshot_download as d; d('openai/clip-vit-large-patch14-336', allow_patterns=['*.json','*.txt','pytorch_model.bin']); [d(r, allow_patterns=['*.json','*.safetensors','*.txt','*.model']) for r in ['facebook/dinov2-large','google/siglip-so400m-patch14-384']]" && chmod -R a+rwX /opt/hf
 RUN useradd -m -u 1000 user
 USER user
 WORKDIR /home/user/app
