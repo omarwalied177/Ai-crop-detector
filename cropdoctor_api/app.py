@@ -128,7 +128,7 @@ app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], all
 def _load():
     global bundle, LOAD_ERROR
     try:
-        wdir = Path(WEIGHTS_DIR) if WEIGHTS_DIR else Path(snapshot_download(WEIGHTS_REPO, token=HF_TOKEN))
+        wdir = Path(WEIGHTS_DIR) if WEIGHTS_DIR else Path(snapshot_download(WEIGHTS_REPO, token=HF_TOKEN, cache_dir="/tmp/hfw"))
         bundle = Bundle(wdir)
     except Exception as e:
         import traceback; LOAD_ERROR = traceback.format_exc(); log.error(LOAD_ERROR)
